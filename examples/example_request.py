@@ -19,6 +19,7 @@ class GetUserByIdHandler(RequestHandler[GetUserByIdRequest, Dict[str, Any]]):
         cancellation_token: Optional[AbstractToken] = None,
     ) -> Dict[str, Any]:
         # In a real application, this would fetch data from a database
+        print("Getting user data from database...")
         # For this example, we'll just return a mock user
         return {
             "id": request.user_id,

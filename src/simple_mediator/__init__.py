@@ -6,9 +6,9 @@ from typing import (
     Dict,
     Generic,
     List,
+    Optional,
     Type,
     TypeVar,
-    Optional,
 )
 
 from cantok import AbstractToken
@@ -20,30 +20,68 @@ TResponse = TypeVar("TResponse")
 
 
 class Request(BaseModel, Generic[TResponse]):
+    """
+    Base class for all requests. Inherits from Pydantic's BaseModel for data validation.
+    Generic over the expected response type.
+    """
+
     pass
 
 
 class Notification(BaseModel):
+    """
+    Base class for all notifications. Inherits from Pydantic's BaseModel for data validation.
+    """
+
     pass
 
 
 class RequestHandler(ABC, Generic[TRequest, TResponse]):
+    """
+    Abstract base class for request handlers. Generic over the request and response types.
+    """
+
     @abstractmethod
     async def handle(
         self, request: TRequest, cancellation_token: Optional[AbstractToken] = None
     ) -> TResponse:
+        """
+        Handle the given request.
+
+        Args:
+            request (TRequest): The request to handle.
+            cancellation_token (Optional[AbstractToken]): Token for cancelling the operation.
+
+        Returns:
+            TResponse: The response to the request.
+        """
         pass
 
 
 class NotificationHandler(ABC, Generic[T]):
+    """
+    Abstract base class for notification handlers. Generic over the notification type.
+    """
+
     @abstractmethod
     async def handle(
         self, notification: T, cancellation_token: Optional[AbstractToken] = None
     ) -> None:
+        """
+        Handle the given notification.
+
+        Args:
+            notification (T): The notification to handle.
+            cancellation_token (Optional[AbstractToken]): Token for cancelling the operation.
+        """
         pass
 
 
 class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
+    """
+    Abstract base class for pipeline behaviors. Generic over the request and response types.
+    """
+
     @abstractmethod
     async def handle(
         self,
@@ -53,10 +91,25 @@ class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
         ],
         cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
+        """
+        Handle the request and call the next behavior in the pipeline.
+
+        Args:
+            request (TRequest): The request to handle.
+            next_request (Callable): The next behavior in the pipeline.
+            cancellation_token (Optional[AbstractToken]): Token for cancelling the operation.
+
+        Returns:
+            TResponse: The response from the pipeline.
+        """
         pass
 
 
 class Mediator:
+    """
+    Mediator class that coordinates the sending of requests and publishing of notifications.
+    """
+
     def __init__(self):
         self.request_handlers: Dict[Type[Request], Type[RequestHandler]] = {}
         self.notification_handlers: Dict[
@@ -67,6 +120,13 @@ class Mediator:
     def register_request_handler(
         self, request_type: Type[Request], handler_type: Type[RequestHandler]
     ) -> None:
+        """
+        Register a request handler for a specific request type.
+
+        Args:
+            request_type (Type[Request]): The type of request.
+            handler_type (Type[RequestHandler]): The type of handler for the request.
+        """
         self.request_handlers[request_type] = handler_type
 
     def register_notification_handler(
@@ -74,11 +134,24 @@ class Mediator:
         notification_type: Type[Notification],
         handler_type: Type[NotificationHandler],
     ) -> None:
+        """
+        Register a notification handler for a specific notification type.
+
+        Args:
+            notification_type (Type[Notification]): The type of notification.
+            handler_type (Type[NotificationHandler]): The type of handler for the notification.
+        """
         self.notification_handlers.setdefault(notification_type, []).append(
             handler_type
         )
 
     def register_pipeline_behavior(self, behavior_type: Type[PipelineBehavior]) -> None:
+        """
+        Register a pipeline behavior.
+
+        Args:
+            behavior_type (Type[PipelineBehavior]): The type of pipeline behavior to register.
+        """
         self.pipeline_behaviors.append(behavior_type)
 
     async def send(
@@ -86,6 +159,19 @@ class Mediator:
         request: Request[TResponse],
         cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
+        """
+        Send a request through the mediator.
+
+        Args:
+            request (Request[TResponse]): The request to send.
+            cancellation_token (Optional[AbstractToken]): Token for cancelling the operation.
+
+        Returns:
+            TResponse: The response from handling the request.
+
+        Raises:
+            ValueError: If no handler is registered for the request type.
+        """
         request_type = type(request)
         if request_type not in self.request_handlers:
             raise ValueError(f"No handler registered for request type {request_type}")
@@ -102,6 +188,15 @@ class Mediator:
     def _create_pipeline(
         self, handler: RequestHandler[TRequest, TResponse]
     ) -> Callable[[TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]]:
+        """
+        Create the pipeline of behaviors wrapped around the request handler.
+
+        Args:
+            handler (RequestHandler[TRequest, TResponse]): The core request handler.
+
+        Returns:
+            Callable: The pipeline function that will process the request.
+        """
         # Start with the handler itself
         pipeline = handler.handle
 
@@ -127,6 +222,13 @@ class Mediator:
         notification: Notification,
         cancellation_token: Optional[AbstractToken] = None,
     ) -> None:
+        """
+        Publish a notification to all registered handlers.
+
+        Args:
+            notification (Notification): The notification to publish.
+            cancellation_token (Optional[AbstractToken]): Token for cancelling the operation.
+        """
         notification_type = type(notification)
         handlers = [
             handler_type()
@@ -138,14 +240,46 @@ class Mediator:
             await handler.handle(notification, cancellation_token)
 
     async def __aenter__(self):
+        """
+        Async context manager enter method.
+
+        Returns:
+            Mediator: The mediator instance.
+        """
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+        Async context manager exit method.
+        """
         pass
 
     @staticmethod
     def _check_cancellation_token(
         cancellation_token: Optional[AbstractToken] = None,
     ) -> None:
+        """
+        Check if the cancellation token has been cancelled and raise an exception if so.
+
+        Args:
+            cancellation_token (Optional[AbstractToken]): The cancellation token to check.
+
+        Raises:
+            Exception: If the cancellation token has been cancelled.
+        """
         if cancellation_token is not None and cancellation_token.cancelled:
             cancellation_token.raise_cancelled_exception()
+
+
+__all__ = [
+    "Request",
+    "Notification",
+    "RequestHandler",
+    "NotificationHandler",
+    "PipelineBehavior",
+    "Mediator",
+    "T",
+    "TRequest",
+    "TResponse",
+    "AbstractToken",
+]

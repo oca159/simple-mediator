@@ -64,7 +64,7 @@ For each request, you need a corresponding handler. The `RequestHandler` interfa
 class RequestHandler(ABC, Generic[TRequest, TResponse]):
     @abstractmethod
     async def handle(
-        self, request: TRequest, cancellation_token: AbstractToken | None = None
+        self, request: TRequest, cancellation_token: Optional[AbstractToken] = None
     ) -> TResponse:
         pass
 ```
@@ -83,7 +83,7 @@ Here's an example of implementing a handler for the `GetUserRequest`:
 ```python
 class GetUserHandler(RequestHandler[GetUserRequest, User]):
     async def handle(
-        self, request: GetUserRequest, cancellation_token: AbstractToken | None = None
+        self, request: GetUserRequest, cancellation_token: Optional[AbstractToken] = None
     ) -> User:
         # In a real application, you would fetch this from a database
         if request.user_id == 1:
@@ -161,7 +161,7 @@ For each notification, you can have multiple handlers. The NotificationHandler i
 class NotificationHandler(ABC, Generic[T]):
     @abstractmethod
     async def handle(
-        self, notification: T, cancellation_token: AbstractToken | None = None
+        self, notification: T, cancellation_token: Optional[AbstractToken] = None
     ) -> None:
         pass
 ```
@@ -180,14 +180,14 @@ Here's an example of implementing handlers for the UserCreatedNotification:
 ```python
 class EmailNotificationHandler(NotificationHandler[UserCreatedNotification]):
     async def handle(
-        self, notification: UserCreatedNotification, cancellation_token: AbstractToken | None = None
+        self, notification: UserCreatedNotification, cancellation_token: Optional[AbstractToken] = None
     ) -> None:
         print(f"Sending welcome email to {notification.email}")
         # In a real application, you would send an actual email here
 
 class AnalyticsNotificationHandler(NotificationHandler[UserCreatedNotification]):
     async def handle(
-        self, notification: UserCreatedNotification, cancellation_token: AbstractToken | None = None
+        self, notification: UserCreatedNotification, cancellation_token: Optional[AbstractToken] = None
     ) -> None:
         print(f"Logging new user creation: User ID {notification.user_id}")
         # In a real application, you might log this to an analytics service
@@ -257,9 +257,9 @@ class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
         self,
         request: TRequest,
         next_request: Callable[
-            [TRequest, AbstractToken | None], Coroutine[Any, Any, TResponse]
+            [TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]
         ],
-        cancellation_token: AbstractToken | None = None,
+        cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
         pass
 ```
@@ -300,9 +300,9 @@ class LoggingBehavior(PipelineBehavior[TRequest, TResponse]):
         self,
         request: TRequest,
         next_request: Callable[
-            [TRequest, AbstractToken | None], Coroutine[Any, Any, TResponse]
+            [TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]
         ],
-        cancellation_token: AbstractToken | None = None,
+        cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
         print(f"Handling request: {request}")
         try:
@@ -350,6 +350,10 @@ async def main():
 
 asyncio.run(main())
 ```
+
+### Examples
+
+You can find examples of how to use the mediator in the [examples](https://github.com/oca159/simple-mediator/tree/main/examples) directory.
 
 ### Contributing
 

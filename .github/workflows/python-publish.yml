@@ -23,10 +23,11 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Build release distributions
+      - name: Set up virtual environment and build release distributions
         run: |
+          uv venv
+          . .venv/bin/activate
           uv pip install build
-          uv pip install --system build
           python -m build
 
       - name: Upload distributions

@@ -12,7 +12,7 @@ class UserCreatedNotification(Notification):
 
 
 # Define handlers for this notification
-class EmailNotificationHandler(NotificationHandler[UserCreatedNotification]):
+class EmailNotificationHandler(NotificationHandler):
     async def handle(
         self,
         notification: UserCreatedNotification,
@@ -22,7 +22,7 @@ class EmailNotificationHandler(NotificationHandler[UserCreatedNotification]):
         # In a real application, this would send an actual email
 
 
-class AnalyticsNotificationHandler(NotificationHandler[UserCreatedNotification]):
+class AnalyticsNotificationHandler(NotificationHandler):
     async def handle(
         self,
         notification: UserCreatedNotification,
@@ -32,7 +32,7 @@ class AnalyticsNotificationHandler(NotificationHandler[UserCreatedNotification])
         # In a real application, this might log to an analytics service
 
 
-class AdminNotificationHandler(NotificationHandler[UserCreatedNotification]):
+class AdminNotificationHandler(NotificationHandler):
     async def handle(
         self,
         notification: UserCreatedNotification,

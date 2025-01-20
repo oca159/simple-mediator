@@ -20,12 +20,12 @@ class User(BaseModel):
 
 
 # Define the request
-class GetUserByIdRequest(Request[User]):
+class GetUserByIdRequest(Request):
     user_id: int
 
 
 # Define the handler for this request
-class GetUserByIdHandler(RequestHandler[GetUserByIdRequest, User]):
+class GetUserByIdHandler(RequestHandler):
     async def handle(
         self,
         request: GetUserByIdRequest,
@@ -42,11 +42,11 @@ class GetUserByIdHandler(RequestHandler[GetUserByIdRequest, User]):
 
 
 # Define a pipeline behavior (optional)
-class LoggingBehavior(PipelineBehavior[GetUserByIdRequest, User]):
+class LoggingBehavior(PipelineBehavior):
     async def handle(
         self,
         request: GetUserByIdRequest,
-        next_request: NextRequestCallable[GetUserByIdRequest, User],
+        next_request: NextRequestCallable,
         cancellation_token: Optional[AbstractToken] = None,
     ) -> User:
         print(f"Handling request to get user with ID: {request.user_id}")
@@ -57,11 +57,11 @@ class LoggingBehavior(PipelineBehavior[GetUserByIdRequest, User]):
         return result
 
 
-class AnotherLoggingBehavior(PipelineBehavior[GetUserByIdRequest, User]):
+class AnotherLoggingBehavior(PipelineBehavior):
     async def handle(
         self,
         request: GetUserByIdRequest,
-        next_request: NextRequestCallable[GetUserByIdRequest, User],
+        next_request: NextRequestCallable,
         cancellation_token: Optional[AbstractToken] = None,
     ) -> User:
         print(f"Handling another request to get user with ID: {request.user_id}")

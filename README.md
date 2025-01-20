@@ -44,7 +44,6 @@ Key points about this interface:
 ##### Implementing a Request
 
 ```python
-from pydantic import BaseModel
 from simple_mediator import Request
 
 class GetUserRequest(Request[dict]):

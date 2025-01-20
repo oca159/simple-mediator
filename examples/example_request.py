@@ -1,44 +1,54 @@
 import asyncio
-from typing import Any, Callable, Coroutine, Dict, Optional
+from typing import Optional
 
 from cantok import AbstractToken
+from pydantic import BaseModel
 
-from simple_mediator import Mediator, PipelineBehavior, Request, RequestHandler
+from simple_mediator import (
+    Mediator,
+    NextRequestCallable,
+    PipelineBehavior,
+    Request,
+    RequestHandler,
+)
+
+
+class User(BaseModel):
+    id: int
+    name: str
+    email: str
 
 
 # Define the request
-class GetUserByIdRequest(Request[Dict[str, Any]]):
+class GetUserByIdRequest(Request[User]):
     user_id: int
 
 
 # Define the handler for this request
-class GetUserByIdHandler(RequestHandler[GetUserByIdRequest, Dict[str, Any]]):
+class GetUserByIdHandler(RequestHandler[GetUserByIdRequest, User]):
     async def handle(
         self,
         request: GetUserByIdRequest,
         cancellation_token: Optional[AbstractToken] = None,
-    ) -> Dict[str, Any]:
+    ) -> User:
         # In a real application, this would fetch data from a database
         print("Getting user data from database...")
         # For this example, we'll just return a mock user
-        return {
-            "id": request.user_id,
-            "name": f"User {request.user_id}",
-            "email": f"user{request.user_id}@example.com",
-        }
+        return User(
+            id=request.user_id,
+            name="John Doe",
+            email="johndoe@example.com",
+        )
 
 
 # Define a pipeline behavior (optional)
-class LoggingBehavior(PipelineBehavior[GetUserByIdRequest, Dict[str, Any]]):
+class LoggingBehavior(PipelineBehavior[GetUserByIdRequest, User]):
     async def handle(
         self,
         request: GetUserByIdRequest,
-        next_request: Callable[
-            [GetUserByIdRequest, Optional[AbstractToken]],
-            Coroutine[Any, Any, Dict[str, Any]],
-        ],
+        next_request: NextRequestCallable[GetUserByIdRequest, User],
         cancellation_token: Optional[AbstractToken] = None,
-    ) -> Dict[str, Any]:
+    ) -> User:
         print(f"Handling request to get user with ID: {request.user_id}")
         if cancellation_token is not None and cancellation_token.is_cancelled():
             cancellation_token.raise_cancelled_exception()
@@ -47,16 +57,13 @@ class LoggingBehavior(PipelineBehavior[GetUserByIdRequest, Dict[str, Any]]):
         return result
 
 
-class AnotherLoggingBehavior(PipelineBehavior[GetUserByIdRequest, Dict[str, Any]]):
+class AnotherLoggingBehavior(PipelineBehavior[GetUserByIdRequest, User]):
     async def handle(
         self,
         request: GetUserByIdRequest,
-        next_request: Callable[
-            [GetUserByIdRequest, Optional[AbstractToken]],
-            Coroutine[Any, Any, Dict[str, Any]],
-        ],
+        next_request: NextRequestCallable[GetUserByIdRequest, User],
         cancellation_token: Optional[AbstractToken] = None,
-    ) -> Dict[str, Any]:
+    ) -> User:
         print(f"Handling another request to get user with ID: {request.user_id}")
         if cancellation_token is not None and cancellation_token.is_cancelled():
             cancellation_token.raise_cancelled_exception()

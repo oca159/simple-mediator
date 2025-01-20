@@ -46,7 +46,14 @@ Key points about this interface:
 ```python
 from simple_mediator import Request
 
-class GetUserRequest(Request[dict]):
+
+class User(BaseModel):
+  id: int
+  name: str
+  email: str
+
+
+class GetUserRequest(Request[User]):
     user_id: int
 
 ```
@@ -256,9 +263,7 @@ class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
     async def handle(
         self,
         request: TRequest,
-        next_request: Callable[
-            [TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]
-        ],
+        next_request: NextRequestCallable[TRequest, TResponse],
         cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
         pass
@@ -293,15 +298,14 @@ The request flows from left to right, and then the response flows back from righ
 
 ```python
 from cantok import AbstractToken
-from simple_mediator import PipelineBehavior
+from simple_mediator import PipelineBehavior, NextRequestCallable
 
-class LoggingBehavior(PipelineBehavior[TRequest, TResponse]):
+
+class LoggingBehavior(PipelineBehavior[GetUserRequest, User]):
     async def handle(
         self,
         request: TRequest,
-        next_request: Callable[
-            [TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]
-        ],
+        next_request: NextRequestCallable[GetUserRequest, User],
         cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
         print(f"Handling request: {request}")
@@ -335,6 +339,7 @@ More information about tokens here: [cantok](https://cantok.readthedocs.io/en/la
 ```python
 import asyncio
 from cantok import SimpleToken
+
 
 async def main():
     token = SimpleToken()

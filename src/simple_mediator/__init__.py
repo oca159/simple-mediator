@@ -18,6 +18,10 @@ T = TypeVar("T")
 TRequest = TypeVar("TRequest", bound="Request")
 TResponse = TypeVar("TResponse")
 
+NextRequestCallable = Callable[
+    [TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]
+]
+
 
 class Request(BaseModel, Generic[TResponse]):
     """
@@ -86,9 +90,7 @@ class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
     async def handle(
         self,
         request: TRequest,
-        next_request: Callable[
-            [TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]
-        ],
+        next_request: NextRequestCallable[TRequest, TResponse],
         cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
         """
@@ -96,7 +98,7 @@ class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
 
         Args:
             request (TRequest): The request to handle.
-            next_request (Callable): The next behavior in the pipeline.
+            next_request (NextRequestCallable[TRequest, TResponse]): The next behavior in the pipeline.
             cancellation_token (Optional[AbstractToken]): Token for cancelling the operation.
 
         Returns:
@@ -186,8 +188,8 @@ class Mediator:
         return await pipeline(request, cancellation_token)
 
     def _create_pipeline(
-        self, handler: RequestHandler[TRequest, TResponse]
-    ) -> Callable[[TRequest, Optional[AbstractToken]], Coroutine[Any, Any, TResponse]]:
+        self, handler: RequestHandler[Request, TResponse]
+    ) -> NextRequestCallable[TRequest, TResponse]:
         """
         Create the pipeline of behaviors wrapped around the request handler.
 
@@ -195,7 +197,7 @@ class Mediator:
             handler (RequestHandler[TRequest, TResponse]): The core request handler.
 
         Returns:
-            Callable: The pipeline function that will process the request.
+            NextRequestCallable[TRequest, TResponse]: The pipeline function that will process the request.
         """
         # Start with the handler itself
         pipeline = handler.handle

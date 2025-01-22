@@ -53,7 +53,7 @@ class User(BaseModel):
   email: str
 
 
-class GetUserRequest(Request[User]):
+class GetUserRequest(Request):
     user_id: int
 
 ```
@@ -88,7 +88,7 @@ Key points:
 Here's an example of implementing a handler for the `GetUserRequest`:
 
 ```python
-class GetUserHandler(RequestHandler[GetUserRequest, User]):
+class GetUserHandler(RequestHandler):
     async def handle(
         self, request: GetUserRequest, cancellation_token: Optional[AbstractToken] = None
     ) -> User:
@@ -185,14 +185,14 @@ Key points:
 Here's an example of implementing handlers for the UserCreatedNotification:
 
 ```python
-class EmailNotificationHandler(NotificationHandler[UserCreatedNotification]):
+class EmailNotificationHandler(NotificationHandler):
     async def handle(
         self, notification: UserCreatedNotification, cancellation_token: Optional[AbstractToken] = None
     ) -> None:
         print(f"Sending welcome email to {notification.email}")
         # In a real application, you would send an actual email here
 
-class AnalyticsNotificationHandler(NotificationHandler[UserCreatedNotification]):
+class AnalyticsNotificationHandler(NotificationHandler):
     async def handle(
         self, notification: UserCreatedNotification, cancellation_token: Optional[AbstractToken] = None
     ) -> None:
@@ -301,11 +301,11 @@ from cantok import AbstractToken
 from simple_mediator import PipelineBehavior, NextRequestCallable
 
 
-class LoggingBehavior(PipelineBehavior[GetUserRequest, User]):
+class LoggingBehavior(PipelineBehavior):
     async def handle(
         self,
-        request: TRequest,
-        next_request: NextRequestCallable[GetUserRequest, User],
+        request: GetUserRequest,
+        next_request: NextRequestCallable,
         cancellation_token: Optional[AbstractToken] = None,
     ) -> TResponse:
         print(f"Handling request: {request}")

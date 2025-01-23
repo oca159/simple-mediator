@@ -56,15 +56,17 @@ async def create_user(mediator: Mediator, user_data: dict) -> None:
 
 
 async def main():
-    mediator = Mediator()
+    notification_handlers = {
+        UserCreatedNotification: [
+            EmailNotificationHandler,
+            AnalyticsNotificationHandler,
+        ],
+    }
 
-    # Register the notification handlers
-    mediator.register_notification_handler(
-        UserCreatedNotification, EmailNotificationHandler
-    )
-    mediator.register_notification_handler(
-        UserCreatedNotification, AnalyticsNotificationHandler
-    )
+    # The mediator can be initialized with the mappings of requests, notifications and pipelines
+    mediator = Mediator(notification_handlers=notification_handlers)  # type: ignore
+
+    # It also supports a single registration of request, notification and pipeline, for instance:
     mediator.register_notification_handler(
         UserCreatedNotification, AdminNotificationHandler
     )

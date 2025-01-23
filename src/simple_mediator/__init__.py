@@ -109,15 +109,43 @@ class PipelineBehavior(ABC, Generic[TRequest, TResponse]):
 
 class Mediator:
     """
-    Mediator class that coordinates the sending of requests and publishing of notifications.
+    Mediator class that coordinates the sending of requests with pipeline behaviors and publishing of notifications
+    in a mediator pattern implementation.
+
+    Args:
+        request_handlers (Optional[Dict[Type[Request], Type[RequestHandler]]]): A dictionary
+            mapping Request types to their corresponding RequestHandler types. Defaults to None.
+        notification_handlers (Optional[Dict[Type[Notification], List[Type[NotificationHandler]]]]):
+            A dictionary mapping Notification types to their corresponding list of NotificationHandler
+            types. Defaults to None.
+        pipeline_behaviors (Optional[List[Type[PipelineBehavior]]]): A list of PipelineBehavior
+            types that will be applied to requests in the order they are provided. These
+            behaviors can modify or enhance the request processing pipeline. Defaults to None.
+
+    Attributes:
+        request_handlers (Dict[Type[Request], Type[RequestHandler]]): Stores the mapping of
+            request types to their handlers.
+        notification_handlers (Dict[Type[Notification], List[Type[NotificationHandler]]]):
+            Stores the mapping of notification types to their handlers.
+        pipeline_behaviors (List[Type[PipelineBehavior]]): Stores the list of pipeline
+            behaviors to be applied during request processing.
     """
 
-    def __init__(self):
-        self.request_handlers: Dict[Type[Request], Type[RequestHandler]] = {}
+    def __init__(
+        self,
+        request_handlers: Optional[Dict[Type[Request], Type[RequestHandler]]] = None,
+        notification_handlers: Optional[
+            Dict[Type[Notification], List[Type[NotificationHandler]]]
+        ] = None,
+        pipeline_behaviors: Optional[List[Type[PipelineBehavior]]] = None,
+    ):
+        self.request_handlers: Dict[Type[Request], Type[RequestHandler]] = (
+            request_handlers or {}
+        )
         self.notification_handlers: Dict[
             Type[Notification], List[Type[NotificationHandler]]
-        ] = {}
-        self.pipeline_behaviors: List[Type[PipelineBehavior]] = []
+        ] = notification_handlers or {}
+        self.pipeline_behaviors: List[Type[PipelineBehavior]] = pipeline_behaviors or []
 
     def register_request_handler(
         self, request_type: Type[Request], handler_type: Type[RequestHandler]

@@ -1,6 +1,6 @@
 [project]
 name = "simple-mediator"
-version = "0.1.7"
+version = "0.1.8"
 description = "A mediator implementation in Python"
 readme = "README.md"
 authors = [{ name = "Osvaldo Cordova Aburto", email = "oca159@gmail.com" }]

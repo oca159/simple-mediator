@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional
+from typing import Dict, List, Type, Optional
 
 from simple_mediator import AbstractToken, Mediator, Notification, NotificationHandler
 
@@ -56,7 +56,7 @@ async def create_user(mediator: Mediator, user_data: dict) -> None:
 
 
 async def main():
-    notification_handlers = {
+    notification_handlers: Dict[Type[Notification], List[Type[NotificationHandler]]] = {
         UserCreatedNotification: [
             EmailNotificationHandler,
             AnalyticsNotificationHandler,
@@ -64,7 +64,7 @@ async def main():
     }
 
     # The mediator can be initialized with the mappings of requests, notifications and pipelines
-    mediator = Mediator(notification_handlers=notification_handlers)  # type: ignore
+    mediator = Mediator(notification_handlers=notification_handlers)
 
     # It also supports a single registration of request, notification and pipeline, for instance:
     mediator.register_notification_handler(
